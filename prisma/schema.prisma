@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model LogActivity {
+  id         Int   @id @default(autoincrement())
+  username   String   @db.VarChar(50)
+  log_data   String   @db.VarChar(500)
+  created_at DateTime @default(now())
+
+  @@map("log_activity")
+}
+
+model users {
+  username        String @id @db.VarChar(50)
+  email           String @unique(map: "Users_email_key") @db.VarChar(100)
+  nama            String
+  profile_picture String @default("") @db.VarChar(250)
+  password        String @db.VarChar(250)
+}
+
+model CodeSnippets {
+  @@map("code_snippets")
+
+  id              Int   @id @default(autoincrement())
+  title           String @db.VarChar(250)
+  description     String @db.Text
+  code_snippet    String @db.Text
+  language        String @db.VarChar(100)
+}
+
+model UsefullLinks {
+  @@map("usefull_links")
+
+  id              Int   @id @default(autoincrement())
+  title           String @db.VarChar(250)
+  description     String @db.Text
+  link            String @db.VarChar(500)
+}
