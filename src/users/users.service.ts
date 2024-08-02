@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -50,8 +50,31 @@ export class UsersService {
     return res.status(400).json({msg: 'Ada kesalahan'})
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(username: string, data: any, res: Response) {
+    Logger.debug(username)
+
+    const user = await this.primaService.users.update({
+      where: {
+        username : username
+      },
+      data : {
+        username : data.username,
+        email : data.email,
+        nama: data.nama,
+      }
+    })
+
+    if (!user) {
+      return res.status(404).json({
+        msg: 'User tidak ditemukan',
+        data : null
+      })
+    }
+
+    return res.status(200).json({
+      msg: 'Berhasil memperbarui data',
+      data : user
+    })
   }
 
   remove(id: number) {

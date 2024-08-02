@@ -26,18 +26,13 @@ export class AuthService {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...result } = this.user;
-    // TODO: Generate a JWT and return it here
-    // instead of the user object
 
     await this.logService.create(username, 'Login')
     return res.status(HttpStatus.OK).json(
       {
-        msg : 'Berhasil login'
+        msg : 'Berhasil login',
+        data: result
       }
     );
-  }
-
-  authGetUsername () {
-    return this.user.username;
   }
 }
