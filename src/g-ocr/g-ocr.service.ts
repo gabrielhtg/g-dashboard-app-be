@@ -4,9 +4,17 @@ import * as Sharp from 'sharp';
 import { cleanNik } from './cleaning-ktp/clean-nik.service';
 import { cleanStringGeneral } from './cleaning-ktp/clean-string-general.service';
 import { cleanTempatTanggalLahir } from './cleaning-ktp/clean-tempat-tanggal-lahir.service';
+import { cleanProvinsiPembuatanService } from './cleaning-ktp/clean-provinsi-pembuatan.service';
+import { cleanAgamaService } from './cleaning-ktp/clean-agama.service';
+import { cleanPekerjaanService } from './cleaning-ktp/clean-pekerjaan.service';
+import { cleanStatusPerkawinanService } from './cleaning-ktp/clean-status-perkawinan.service';
+import { cleanOcrSelectionService } from './cleaning-ktp/clean-ocr-selection.service';
+import * as fs from 'node:fs';
+import { Response } from 'express';
 
 @Injectable()
 export class GOcrService {
+  // melakukan OCR pada manual selection
   async proceedOcr(file: Express.Multer.File) {
     const worker = await createWorker('eng');
     let data = ''
@@ -17,11 +25,12 @@ export class GOcrService {
       await worker.terminate();
     })();
 
-    return { data: data, rawData : data }
+    return { data: cleanOcrSelectionService(data), rawData : data }
   }
 
+  // Melakukan OCR berdasarkan region box
   async proceedOcrAll(file: Express.Multer.File) {
-    const worker = await createWorker('eng');
+    const worker = await createWorker(['eng', 'ind']);
 
     const values = []
     const image = Sharp(file.buffer)
@@ -117,7 +126,7 @@ export class GOcrService {
       // Status Perkawinan
       {
         left: imageWidth * (24 / 100),
-        top: imageHeight * (60 / 100),
+        top: imageHeight * (61 / 100),
         width: imageWidth * (28 / 100),
         height: imageHeight * (6 / 100),
       },
@@ -138,14 +147,14 @@ export class GOcrService {
       // Berlaku Hingga
       {
         left: imageWidth * (24 / 100),
-        top: imageHeight * (75 / 100),
-        width: imageWidth * (38 / 100),
+        top: imageHeight * (72 / 100),
+        width: imageWidth * (20 / 100),
         height: imageHeight * (8 / 100),
       },
       // Dibuat Tanggal
       {
         left: imageWidth * (78 / 100),
-        top: imageHeight * (72 / 100),
+        top: imageHeight * (71 / 100),
         width: imageWidth * (15 / 100),
         height: imageHeight * (6 / 100),
       },
@@ -160,18 +169,38 @@ export class GOcrService {
       await worker.terminate();
     })();
 
+    const data = {
+      'provinsi_pembuatan' : values[0],
+      'kota_pembuatan' : values[1],
+      'nik' : values[2],
+      'nama' : values[3],
+      'tempat_tanggal_lahir' : values[4],
+      'jenis_kelamin' : values[5],
+      'gol_darah': values[6],
+      'alamat' : values[7],
+      'rt_rw' :values[8],
+      'kel_desa': values[9],
+      'kecamatan': values[10],
+      'agama': values[11],
+      'status_perkawinan': values[12],
+      'pekerjaan': values[13],
+      'kewarganegaraan': values[14],
+      'berlaku_hingga': values[15],
+      'tanggal_dibuat': values[16],
+    }
+
     //cleaning data
-    values[0] = cleanStringGeneral(values[0])
+    values[0] = cleanProvinsiPembuatanService(values[0])
     values[1] = cleanStringGeneral(values[1])
     values[2] = cleanNik(values[2])
     values[3] = cleanStringGeneral(values[3])
     values[7] = cleanStringGeneral(values[7])
     values[15] = cleanStringGeneral(values[15])
-    values[11] = cleanStringGeneral(values[11])
+    values[11] = cleanAgamaService(values[11])
     values[9] = cleanStringGeneral(values[9])
-    values[12] = cleanStringGeneral(values[12])
+    values[12] = cleanStatusPerkawinanService(values[12])
     values[14] = cleanStringGeneral(values[14])
-    values[13] = cleanStringGeneral(values[13])
+    values[13] = cleanPekerjaanService(values[13])
     values[4] = cleanTempatTanggalLahir(values[4])
 
     if (!values[6]) {
@@ -196,26 +225,26 @@ export class GOcrService {
       values[13] = 'PELAJAR/MAHASISWA'
     }
 
-    const data = {
-      'provinsi_pembuatan' : values[0],
-      'kota_pembuatan' : values[1],
-      'nik' : values[2],
-      'nama' : values[3],
-      'tempat_tanggal_lahir' : values[4],
-      'jenis_kelamin' : values[5],
-      'gol_darah': values[6],
-      'alamat' : values[7],
-      'rt_rw' :values[8],
-      'kel_desa': values[9],
-      'kecamatan': values[10],
-      'agama': values[11],
-      'status_perkawinan': values[12],
-      'pekerjaan': values[13],
-      'kewarganegaraan': values[14],
-      'berlaku_hingga': values[15],
-      'tanggal_dibuat': values[16],
-    }
-
     return { data: values, rawData : data }
+  }
+
+  // mengekspor gambar ke dalam file pdf
+  async exportPDF (file: Express.Multer.File, res: Response) {
+    const worker = await createWorker(['eng', 'ind']);
+
+    const values = []
+
+    await (async () => {
+      const { data: { text, pdf } } = await worker.recognize(file.buffer, { pdfTitle: 'Example PDF' }, {pdf: true});
+      fs.writeFileSync(`${__dirname}/../../static-file/tesseract-ocr-result.pdf`, Buffer.from(pdf));
+      values.push(text)
+
+      await worker.terminate();
+    })();
+
+    // diarahkan ke url static files yang digenerate oleh OCR
+    return res.status(200).json({
+      data: 'http://192.168.1.32:3000/tesseract-ocr-result.pdf'
+    })
   }
 }

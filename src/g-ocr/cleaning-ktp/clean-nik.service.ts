@@ -13,7 +13,10 @@ export function cleanNik (text: string) {
     if (tempArrChar[i] == '-') {
       tempArrChar[i] = ''
     }
-    if (tempArrChar[i] == '=') {
+    if (
+      tempArrChar[i] == '=' ||
+      tempArrChar[i] == '%'
+    ) {
       tempArrChar[i] = ''
     }
 
