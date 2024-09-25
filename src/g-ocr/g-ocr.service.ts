@@ -17,26 +17,28 @@ export class GOcrService {
   // melakukan OCR pada manual selection
   async proceedOcr(file: Express.Multer.File) {
     const worker = await createWorker('eng');
-    let data = ''
+    let data = '';
 
     await (async () => {
-      const { data: { text } } = await worker.recognize(file.buffer);
-      data = text
+      const {
+        data: { text },
+      } = await worker.recognize(file.buffer);
+      data = text;
       await worker.terminate();
     })();
 
-    return { data: cleanOcrSelectionService(data), rawData : data }
+    return { data: cleanOcrSelectionService(data), rawData: data };
   }
 
   // Melakukan OCR berdasarkan region box
   async proceedOcrAll(file: Express.Multer.File) {
     const worker = await createWorker(['eng', 'ind']);
 
-    const values = []
-    const image = Sharp(file.buffer)
-    const metadata = await image.metadata()
-    const imageWidth = metadata.width
-    const imageHeight = metadata.height
+    const values = [];
+    const image = Sharp(file.buffer);
+    const metadata = await image.metadata();
+    const imageWidth = metadata.width;
+    const imageHeight = metadata.height;
 
     const rectangles = [
       // provinsi pembuatan
@@ -162,89 +164,98 @@ export class GOcrService {
 
     await (async () => {
       for (let i = 0; i < rectangles.length; i++) {
-        const { data: { text } } = await worker.recognize(file.buffer, { rectangle: rectangles[i] });
-        values.push(text)
+        const {
+          data: { text },
+        } = await worker.recognize(file.buffer, { rectangle: rectangles[i] });
+        values.push(text);
       }
 
       await worker.terminate();
     })();
 
     const data = {
-      'provinsi_pembuatan' : values[0],
-      'kota_pembuatan' : values[1],
-      'nik' : values[2],
-      'nama' : values[3],
-      'tempat_tanggal_lahir' : values[4],
-      'jenis_kelamin' : values[5],
-      'gol_darah': values[6],
-      'alamat' : values[7],
-      'rt_rw' :values[8],
-      'kel_desa': values[9],
-      'kecamatan': values[10],
-      'agama': values[11],
-      'status_perkawinan': values[12],
-      'pekerjaan': values[13],
-      'kewarganegaraan': values[14],
-      'berlaku_hingga': values[15],
-      'tanggal_dibuat': values[16],
-    }
+      provinsi_pembuatan: values[0],
+      kota_pembuatan: values[1],
+      nik: values[2],
+      nama: values[3],
+      tempat_tanggal_lahir: values[4],
+      jenis_kelamin: values[5],
+      gol_darah: values[6],
+      alamat: values[7],
+      rt_rw: values[8],
+      kel_desa: values[9],
+      kecamatan: values[10],
+      agama: values[11],
+      status_perkawinan: values[12],
+      pekerjaan: values[13],
+      kewarganegaraan: values[14],
+      berlaku_hingga: values[15],
+      tanggal_dibuat: values[16],
+    };
 
     //cleaning data
-    values[0] = cleanProvinsiPembuatanService(values[0])
-    values[1] = cleanStringGeneral(values[1])
-    values[2] = cleanNik(values[2])
-    values[3] = cleanStringGeneral(values[3])
-    values[7] = cleanStringGeneral(values[7])
-    values[15] = cleanStringGeneral(values[15])
-    values[11] = cleanAgamaService(values[11])
-    values[9] = cleanStringGeneral(values[9])
-    values[12] = cleanStatusPerkawinanService(values[12])
-    values[14] = cleanStringGeneral(values[14])
-    values[13] = cleanPekerjaanService(values[13])
-    values[4] = cleanTempatTanggalLahir(values[4])
+    values[0] = cleanProvinsiPembuatanService(values[0]);
+    values[1] = cleanStringGeneral(values[1]);
+    values[2] = cleanNik(values[2]);
+    values[3] = cleanStringGeneral(values[3]);
+    values[7] = cleanStringGeneral(values[7]);
+    values[15] = cleanStringGeneral(values[15]);
+    values[11] = cleanAgamaService(values[11]);
+    values[9] = cleanStringGeneral(values[9]);
+    values[12] = cleanStatusPerkawinanService(values[12]);
+    values[14] = cleanStringGeneral(values[14]);
+    values[13] = cleanPekerjaanService(values[13]);
+    values[4] = cleanTempatTanggalLahir(values[4]);
 
     if (!values[6]) {
-      values[6] = '-'
+      values[6] = '-';
     }
 
     if (values[5].toLowerCase().includes('ak')) {
-      values[5] = 'LAKI-LAKI'
-    }
-    else if (values[5].toLowerCase().includes('emp')) {
-      values[5] = 'PEREMPUAN'
-    }
-    else {
-      values[5] = '-'
+      values[5] = 'LAKI-LAKI';
+    } else if (values[5].toLowerCase().includes('emp')) {
+      values[5] = 'PEREMPUAN';
+    } else {
+      values[5] = '-';
     }
 
     if (values[15].toLowerCase().includes('umu')) {
-      values[15] = 'SEUMUR HIDUP'
+      values[15] = 'SEUMUR HIDUP';
     }
 
     if (values[13].toLowerCase().includes('mah')) {
-      values[13] = 'PELAJAR/MAHASISWA'
+      values[13] = 'PELAJAR/MAHASISWA';
     }
 
-    return { data: values, rawData : data }
+    return { data: values, rawData: data };
   }
 
   // mengekspor gambar ke dalam file pdf
-  async exportPDF (file: Express.Multer.File, res: Response) {
+  async exportPDF(file: Express.Multer.File, res: Response) {
     const worker = await createWorker(['eng', 'ind']);
 
-    const values = []
+    const values = [];
 
     await (async () => {
-      const { data: { text, pdf } } = await worker.recognize(file.buffer, { pdfTitle: 'Example PDF' }, {pdf: true});
-      fs.writeFileSync(`${__dirname}/../../static-file/tesseract-ocr-result.pdf`, Buffer.from(pdf));
-      values.push(text)
+      const {
+        data: { text, pdf },
+      } = await worker.recognize(
+        file.buffer,
+        { pdfTitle: 'Example PDF' },
+        { pdf: true },
+      );
+      fs.writeFileSync(
+        `${__dirname}/../../static-file/tesseract-ocr-result.pdf`,
+        Buffer.from(pdf),
+      );
+      values.push(text);
 
       await worker.terminate();
     })();
 
     // diarahkan ke url static files yang digenerate oleh OCR
     return res.status(200).json({
-      data: 'http://192.168.1.32:3000/tesseract-ocr-result.pdf'
-    })
+      data: 'http://localhost:3000/tesseract-ocr-result.pdf',
+    });
   }
 }
