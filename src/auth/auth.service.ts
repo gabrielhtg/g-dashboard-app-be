@@ -20,7 +20,7 @@ export class AuthService {
   async signIn(username: string, pass: string, res: Response): Promise<any> {
     this.user = await this.prismaService.users.findUnique({where: { username: username }})
 
-    if (!   await this.securityService.isMatch(this.user.password, pass)) {
+    if (!await this.securityService.isMatch(this.user.password, pass)) {
       throw new UnauthorizedException();
     }
 
