@@ -29,7 +29,7 @@ export class AuthService {
 
     if (this.user == null) {
       return res.status(HttpStatus.UNAUTHORIZED).json({
-        msg: 'Wrong Credentials',
+        msg: 'Pastikan username dan password kamu sudah tepat!',
       });
     }
 
