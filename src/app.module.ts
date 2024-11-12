@@ -9,6 +9,7 @@ import { UsefullLinkModule } from './usefull-link/usefull-link.module';
 import { GOcrModule } from './g-ocr/g-ocr.module';
 import { GOcrBankModule } from './g-ocr-bank/g-ocr-bank.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'node:path';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     GOcrModule,
     GOcrBankModule,
     ServeStaticModule.forRoot({
-      rootPath: `${__dirname}/../static-file`,
+      rootPath: join(process.cwd(), './storage'),
     }),
   ],
   controllers: [AppController],

@@ -11,6 +11,7 @@ import { cleanStatusPerkawinanService } from './cleaning-ktp/clean-status-perkaw
 import { cleanOcrSelectionService } from './cleaning-ktp/clean-ocr-selection.service';
 import * as fs from 'node:fs';
 import { Response } from 'express';
+import { join } from 'node:path';
 
 @Injectable()
 export class GOcrService {
@@ -245,7 +246,7 @@ export class GOcrService {
         { pdf: true },
       );
       fs.writeFileSync(
-        `${__dirname}/../../static-file/tesseract-ocr-result.pdf`,
+        `${join(process.cwd(), './storage/tesseract-ocr-result.pdf')}`,
         Buffer.from(pdf),
       );
       values.push(text);
@@ -255,7 +256,7 @@ export class GOcrService {
 
     // diarahkan ke url static files yang digenerate oleh OCR
     return res.status(200).json({
-      data: 'http://localhost:3000/tesseract-ocr-result.pdf',
+      data: 'http://localhost:4700/tesseract-ocr-result.pdf',
     });
   }
 }
