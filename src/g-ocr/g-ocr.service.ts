@@ -12,6 +12,7 @@ import { cleanOcrSelectionService } from './cleaning-ktp/clean-ocr-selection.ser
 import * as fs from 'node:fs';
 import { Response } from 'express';
 import { join } from 'node:path';
+import { apiUrl } from 'src/env';
 
 @Injectable()
 export class GOcrService {
@@ -256,7 +257,7 @@ export class GOcrService {
 
     // diarahkan ke url static files yang digenerate oleh OCR
     return res.status(200).json({
-      data: 'http://localhost:4700/tesseract-ocr-result.pdf',
+      data: `${apiUrl}/tesseract-ocr-result.pdf`,
     });
   }
 }
