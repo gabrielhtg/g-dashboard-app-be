@@ -4,7 +4,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { SecurityService } from '../security/security.service';
 import { LogActivityService } from '../log-activity/log-activity.service';
@@ -22,7 +22,29 @@ export class AuthService {
     this.logger = new Logger(AuthService.name);
   }
 
-  async signIn(username: string, pass: string, res: Response): Promise<any> {
+  async isSameIp(username: string, req: Request, res: Response) {
+    const user = await this.prismaService.users.findUnique({
+      where: { username: username },
+    });
+
+    if (user.last_ip == req.ip) {
+      return res.status(HttpStatus.OK).json({
+        data: 'IP Address Sama',
+      });
+    } else {
+      return res.status(HttpStatus.UNAUTHORIZED).json({
+        data: 'Anda sudah login dari perangkat lain.',
+      });
+    }
+  }
+
+  async signIn(
+    username: string,
+    pass: string,
+    req: Request,
+    res: Response,
+  ): Promise<any> {
+    const ipAddress = req.ip;
     this.user = await this.prismaService.users.findUnique({
       where: { username: username },
     });
@@ -34,13 +56,22 @@ export class AuthService {
     }
 
     if (!(await this.securityService.isMatch(this.user.password, pass))) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Password salah');
     }
 
+    // Update IP address di database setelah berhasil login
+    await this.prismaService.users.update({
+      where: { username: this.user.username },
+      data: { last_ip: ipAddress },
+    });
+
+    // Log aktivitas login
+    await this.logService.create(username, 'Login');
+
+    // Hapus password dari respons sebelum mengirimkan ke klien
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...result } = this.user;
 
-    await this.logService.create(username, 'Login');
     return res.status(HttpStatus.OK).json({
       msg: 'Berhasil login',
       data: result,
