@@ -27,6 +27,8 @@ export class AuthService {
       where: { username: username },
     });
 
+    console.log(user);
+
     if (
       user.last_ip ==
       String(req.headers['x-forwarded-for'] || req.socket.remoteAddress)
