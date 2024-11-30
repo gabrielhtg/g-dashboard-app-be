@@ -44,7 +44,10 @@ export class AuthService {
     req: Request,
     res: Response,
   ): Promise<any> {
-    const ipAddress = req.ip;
+    const ip = String(
+      req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+    );
+
     this.user = await this.prismaService.users.findUnique({
       where: { username: username },
     });
@@ -62,7 +65,7 @@ export class AuthService {
     // Update IP address di database setelah berhasil login
     await this.prismaService.users.update({
       where: { username: this.user.username },
-      data: { last_ip: ipAddress },
+      data: { last_ip: ip },
     });
 
     // Log aktivitas login
