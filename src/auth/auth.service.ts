@@ -27,7 +27,10 @@ export class AuthService {
       where: { username: username },
     });
 
-    if (user.last_ip == req.ip) {
+    if (
+      user.last_ip ==
+      String(req.headers['x-forwarded-for'] || req.socket.remoteAddress)
+    ) {
       return res.status(HttpStatus.OK).json({
         data: 'IP Address Sama',
       });
@@ -46,7 +49,7 @@ export class AuthService {
   ): Promise<any> {
     const ip = String(
       req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-    ).split(':')[0];
+    );
 
     this.user = await this.prismaService.users.findUnique({
       where: { username: username },
