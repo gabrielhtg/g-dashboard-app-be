@@ -46,7 +46,7 @@ export class AuthService {
   ): Promise<any> {
     const ip = String(
       req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-    );
+    ).split(':')[0];
 
     this.user = await this.prismaService.users.findUnique({
       where: { username: username },
