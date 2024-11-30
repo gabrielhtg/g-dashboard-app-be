@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Param, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
 
@@ -11,17 +11,19 @@ export class AuthController {
     return this.authService.signIn(
       signInDto.username,
       signInDto.password,
+      signInDto.ip_address,
       req,
       res,
     );
   }
 
-  @Get('checkIp/:username')
+  @Post('checkIp/:username')
   isSameIp(
     @Param('username') username: string,
+    @Body() checkIpDto: any,
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    return this.authService.isSameIp(username, req, res);
+    return this.authService.isSameIp(username, checkIpDto.ip_address, req, res);
   }
 }

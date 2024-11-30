@@ -22,17 +22,12 @@ export class AuthService {
     this.logger = new Logger(AuthService.name);
   }
 
-  async isSameIp(username: string, req: Request, res: Response) {
+  async isSameIp(username: string, ip: string, req: Request, res: Response) {
     const user = await this.prismaService.users.findUnique({
       where: { username: username },
     });
 
-    console.log(user);
-
-    if (
-      user.last_ip ==
-      String(req.headers['x-forwarded-for'] || req.socket.remoteAddress)
-    ) {
+    if (user.last_ip == ip) {
       return res.status(HttpStatus.OK).json({
         data: 'IP Address Sama',
       });
@@ -46,12 +41,13 @@ export class AuthService {
   async signIn(
     username: string,
     pass: string,
+    ip_address: string,
     req: Request,
     res: Response,
   ): Promise<any> {
-    const ip = String(
-      req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-    );
+    // const ip = String(
+    //   req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+    // );
 
     this.user = await this.prismaService.users.findUnique({
       where: { username: username },
@@ -70,7 +66,7 @@ export class AuthService {
     // Update IP address di database setelah berhasil login
     await this.prismaService.users.update({
       where: { username: this.user.username },
-      data: { last_ip: ip },
+      data: { last_ip: ip_address },
     });
 
     // Log aktivitas login
