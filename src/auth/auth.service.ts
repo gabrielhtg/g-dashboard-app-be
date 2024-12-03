@@ -23,8 +23,6 @@ export class AuthService {
   }
 
   async isSameIp(username: string, ip: string, req: Request, res: Response) {
-    console.log('mama');
-
     const user = await this.prismaService.users.findUnique({
       where: { username: username },
     });
