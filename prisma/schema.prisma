@@ -23,6 +23,7 @@ model users {
   profile_picture String @default("") @db.VarChar(250)
   password        String @db.VarChar(250)
   last_ip String? @db.VarChar(45)
+  login_token     String?
 }
 
 model CodeSnippets {

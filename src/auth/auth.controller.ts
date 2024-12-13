@@ -7,14 +7,18 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  signIn(@Body() signInDto: any, @Req() req: Request, @Res() res: Response) {
-    return this.authService.signIn(
+  async signIn(@Body() signInDto: any, @Res() res: Response) {
+    return await this.authService.signIn(
       signInDto.username,
       signInDto.password,
-      signInDto.ip_address,
-      req,
+      signInDto.token,
       res,
     );
+  }
+
+  @Post('logout')
+  async logout(@Body() signInDto: any, @Res() res: Response) {
+    return await this.authService.signOut(signInDto.username, res);
   }
 
   @Post('checkIp')
