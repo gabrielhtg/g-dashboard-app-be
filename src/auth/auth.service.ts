@@ -77,7 +77,7 @@ export class AuthService {
       });
     } else {
       return res.status(HttpStatus.UNAUTHORIZED).json({
-        msg: 'Active session detected!',
+        msg: 'Another active session detected. Please logour from that session first!',
       });
     }
 
