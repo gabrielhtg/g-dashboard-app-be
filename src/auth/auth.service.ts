@@ -1,9 +1,4 @@
-import {
-  HttpStatus,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { SecurityService } from '../security/security.service';
@@ -56,7 +51,9 @@ export class AuthService {
     }
 
     if (!(await this.securityService.isMatch(this.user.password, pass))) {
-      throw new UnauthorizedException('Wrong password!');
+      return res.status(HttpStatus.UNAUTHORIZED).json({
+        msg: 'Make sure your username and password are correct!',
+      });
     }
 
     const newToken = uuidv4();
