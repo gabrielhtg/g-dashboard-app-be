@@ -1,7 +1,13 @@
-import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post, Res,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { GOcrBankService } from './g-ocr-bank.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
+import { Express, Response } from 'express';
 
 @Controller('g-ocr-bank')
 export class GOcrBankController {
@@ -17,5 +23,10 @@ export class GOcrBankController {
   @UseInterceptors(FileInterceptor('file'))
   proceedOcrAll(@UploadedFile() file: Express.Multer.File) {
     return this.gOcrBankService.proceedOcrAll(file);
+  }
+
+  @Post('save-ocr-data')
+  saveOcrData(@Body() ocrData:any, @Res() res: Response) {
+    return this.gOcrBankService.saveOcrData(ocrData, res);
   }
 }
