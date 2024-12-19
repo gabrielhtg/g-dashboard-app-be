@@ -49,11 +49,14 @@ model OcrResult {
   @@map("ocr_result")
 
   id Int @id @default(autoincrement())
-  result String @db.LongText()
+  result String? @db.LongText()
   upload_date DateTime @default(now())
   uploaded_by String
-  total_file Int
+  total_page Int?
   bank_type String
-  link String @db.VarChar(255)
+  file_type String? @db.VarChar(10)
+  link String? @db.VarChar(255)
   error_message String?
+  file_name String? @db.LongText()
+  status String?
 }

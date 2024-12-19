@@ -6,8 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class GOcrBankService {
-  constructor(private prismaService: PrismaService) {
-  }
+  constructor(private prismaService: PrismaService) {}
 
   async proceedOcr(file: Express.Multer.File) {
     const worker = await createWorker('eng');
@@ -97,16 +96,48 @@ export class GOcrBankService {
       data: {
         result: data.result,
         uploaded_by: data.uploaded_by,
-        total_file: data.total_file,
+        total_page: data.total_page,
         bank_type: data.bank_type,
         error_message: data.error_message,
-        link: data.link
-      }
-    })
+        link: data.link,
+        file_type: data.file_type,
+        file_name: data.file_name,
+        status: data.result ? 'Success' : 'Failed',
+      },
+    });
 
     return res.status(200).json({
       message: 'OCR Data Saved',
-      data: updateResult
-    })
+      data: updateResult,
+    });
+  }
+
+  async getAllOcrData(username: string, res: Response) {
+    const ocrData = await this.prismaService.ocrResult.findMany({
+      where: {
+        uploaded_by: username,
+      },
+      orderBy: {
+        upload_date: 'desc',
+      },
+    });
+
+    return res.status(200).json({
+      message: 'Success',
+      data: ocrData,
+    });
+  }
+
+  async getOcrDataById(id: number, res: Response) {
+    const ocrData = await this.prismaService.ocrResult.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    return res.status(200).json({
+      message: 'Success',
+      data: ocrData,
+    });
   }
 }
